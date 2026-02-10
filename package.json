@@ -1,0 +1,12 @@
+{
+  "name": "js-projects",
+  "version": "1.0.0",
+  "description": "A collection of JavaScript projects including CLI utilities",
+  "main": "cli_utility_toolKit/index.js",
+  "scripts": {
+    "start": "node cli_utility_toolKit/index.js"
+  },
+  "dependencies": {
+    "prompt-sync": "^4.2.0"
+  }
+}
