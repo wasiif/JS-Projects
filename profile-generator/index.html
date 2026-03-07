@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Profile Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --border: #21262d;
+    --green: #3fb950;
+    --green-dim: #1a4a25;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --orange: #f0883e;
+    --red: #f85149;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --text-dim: #484f58;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(63,185,80,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 90%, rgba(88,166,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header{
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    color: var(--green);
+
+    span {
+      color: var(--red);
+    }
+  }
+
+  .logo-line {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2.2rem;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  .logo-line span { color: var(--green); }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .prompt-line {
+    color: var(--green);
+    font-size: 0.72rem;
+    margin-top: 10px;
+  }
+
+  .prompt-line::before { content: '$ '; }
+
+  /* CONTROLS */
+  .controls {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .control-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  label .key {
+    color: var(--purple);
+    margin-right: 4px;
+  }
+
+  select, input[type="text"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  select:focus, input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px rgba(63,185,80,0.15);
+  }
+
+  select option { background: #111318; }
+
+  .btn-generate {
+    grid-column: 1 / -1;
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-generate:hover {
+    background: #4fc760;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(63,185,80,0.3);
+  }
+
+  .btn-generate:active { transform: translateY(0); }
+
+  /* RESULT CARD */
+  .result-area {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .result-area.visible { display: flex; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: #161b22;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dots { display: flex; gap: 6px; }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .dot-r { background: #f85149; }
+  .dot-y { background: #f0883e; }
+  .dot-g { background: #3fb950; }
+
+  .card-title {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .card-body {
+    padding: 24px;
+  }
+
+  /* PROFILE PREVIEW */
+  .profile-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-dim), #0d2818);
+    border: 2px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+
+  .profile-info { flex: 1; }
+
+  .profile-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .profile-username {
+    color: var(--blue);
+    font-size: 0.82rem;
+    margin-top: 4px;
+  }
+
+  .profile-username::before { content: '@'; }
+
+  .profile-bio {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 10px;
+    line-height: 1.6;
+    max-width: 520px;
+  }
+
+  .profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .tag {
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.2);
+    color: var(--blue);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.68rem;
+  }
+
+  .tag.green {
+    background: rgba(63,185,80,0.1);
+    border-color: rgba(63,185,80,0.2);
+    color: var(--green);
+  }
+
+  .tag.purple {
+    background: rgba(188,140,255,0.1);
+    border-color: rgba(188,140,255,0.2);
+    color: var(--purple);
+  }
+
+  .profile-stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .stat strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* SECTIONS */
+  .section-label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .field-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .field-key {
+    color: var(--purple);
+    font-size: 0.78rem;
+    min-width: 120px;
+    flex-shrink: 0;
+  }
+
+  .field-val {
+    color: var(--text);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .field-val .str { color: #a5d6ff; }
+  .field-val .num { color: var(--orange); }
+  .field-val .bool { color: var(--green); }
+  .field-val .arr { color: var(--text-muted); }
+
+  /* STACK GRID */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .stack-item {
+    background: #161b22;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .stack-item:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* BIO TEXT */
+  .bio-text-box {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.78rem;
+    color: var(--text);
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  .bio-text-box .comment { color: var(--text-dim); }
+  .bio-text-box .highlight { color: var(--green); }
+  .bio-text-box .link { color: var(--blue); text-decoration: underline; }
+
+  /* STREAK */
+  .contrib-grid {
+    display: grid;
+    grid-template-columns: repeat(52, 1fr);
+    gap: 2px;
+    margin-top: 4px;
+  }
+
+  .contrib-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2px;
+  }
+
+  .c0 { background: #161b22; }
+  .c1 { background: #0e4429; }
+  .c2 { background: #006d32; }
+  .c3 { background: #26a641; }
+  .c4 { background: #39d353; }
+
+  /* REGENERATE */
+  .actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-secondary {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  .typing::after {
+    content: '▋';
+    animation: blink 1s step-start infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: fadeIn 0.4s ease forwards; }
+
+  @media (max-width: 600px) {
+    .controls { grid-template-columns: 1fr; }
+    .contrib-grid { grid-template-columns: repeat(26, 1fr); }
+    .profile-preview { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="logo-line">github<span>.profile</span> gen</div>
+    <div class="subtitle">// generate developer identities for your projects</div>
+    <div class="prompt-line">ready to generate</div>
+  </header>
+
+  <div class="controls">
+    <div class="control-group">
+      <label><span class="key">--</span>specialization</label>
+      <select id="spec">
+        <option value="fullstack">Full-Stack Engineer</option>
+        <option value="backend">Backend / Systems</option>
+        <option value="frontend">Frontend / UI</option>
+        <option value="devops">DevOps / Platform</option>
+        <option value="ml">ML / AI Engineer</option>
+        <option value="security">Security Engineer</option>
+        <option value="mobile">Mobile Developer</option>
+        <option value="blockchain">Blockchain / Web3</option>
+        <option value="gamedev">Game Developer</option>
+        <option value="embedded">Embedded / Low-level</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label><span class="key">--</span>vibe</label>
+      <select id="vibe">
+        <option value="indie">Indie Hacker</option>
+        <option value="oss">Open Source Purist</option>
+        <option value="corporate">Senior @ Big Tech</option>
+        <option value="researcher">Researcher / Academic</option>
+        <option value="startup">Startup Founder</option>
+        <option value="minimalist">Minimalist / Clean</option>
+        <option value="chaotic">Chaotic Good Coder</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label><span class="key">--</span>primary-lang</label>
+      <select id="lang">
+        <option value="rust">Rust</option>
+        <option value="go">Go</option>
+        <option value="python">Python</option>
+        <option value="ts">TypeScript</option>
+        <option value="cpp">C / C++</option>
+        <option value="kotlin">Kotlin</option>
+        <option value="haskell">Haskell</option>
+        <option value="elixir">Elixir</option>
+        <option value="zig">Zig</option>
+        <option value="ocaml">OCaml</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label><span class="key">--</span>location</label>
+      <select id="location">
+        <option value="SF">San Francisco, CA</option>
+        <option value="NYC">New York, NY</option>
+        <option value="SEA">Seattle, WA</option>
+        <option value="BER">Berlin, DE</option>
+        <option value="LON">London, UK</option>
+        <option value="TKY">Tokyo, JP</option>
+        <option value="SGP">Singapore</option>
+        <option value="AUS">Austin, TX</option>
+        <option value="RMT">Remote 🌍</option>
+      </select>
+    </div>
+
+    <button class="btn-generate" onclick="generate()">
+      <span>⚡</span> Generate Profile
+    </button>
+  </div>
+
+  <div class="result-area" id="result">
+
+    <!-- PROFILE PREVIEW -->
+    <div class="card animate-in" style="animation-delay:0s">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="card-title">profile_preview.json</span>
+        </div>
+        <button class="copy-btn" onclick="copySection('profileData')">copy</button>
+      </div>
+      <div class="card-body">
+        <div class="profile-preview">
+          <div class="avatar" id="avatarEmoji">🦀</div>
+          <div class="profile-info">
+            <div class="profile-name" id="displayName">—</div>
+            <div class="profile-username" id="username">—</div>
+            <div class="profile-bio" id="bioShort">—</div>
+            <div class="profile-tags" id="profileTags"></div>
+            <div class="profile-stats" id="profileStats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IDENTITY JSON -->
+    <div class="card animate-in" style="animation-delay:0.08s">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="card-title">identity.json</span>
+        </div>
+        <button class="copy-btn" onclick="copySection('identityText')">copy</button>
+      </div>
+      <div class="card-body" id="identityText">
+      </div>
+    </div>
+
+    <!-- TECH STACK -->
+    <div class="card animate-in" style="animation-delay:0.14s">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="card-title">tech_stack.md</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section-label">languages & tools</div>
+        <div class="stack-grid" id="stackGrid"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE BIO -->
+    <div class="card animate-in" style="animation-delay:0.2s">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="card-title">README.md — profile bio</span>
+        </div>
+        <button class="copy-btn" onclick="copySection('bioFull')">copy</button>
+      </div>
+      <div class="card-body">
+        <div class="bio-text-box" id="bioFull">—</div>
+      </div>
+    </div>
+
+    <!-- CONTRIBUTION GRAPH -->
+    <div class="card animate-in" style="animation-delay:0.26s">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="card-title">contribution_graph.svg</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section-label">activity — last 52 weeks</div>
+        <div class="contrib-grid" id="contribGrid"></div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions animate-in" style="animation-delay:0.3s">
+      <button class="btn-secondary" onclick="generate()">⟳ Regenerate</button>
+      <button class="btn-secondary" onclick="copyAll()">⎘ Copy All Fields</button>
+    </div>
+
+  </div>
+
+  <footer><span>&copy; </span>wasif</footer>
+
+</div>
+
+<script src="./script.js"></script>
+</body>
+</html>
